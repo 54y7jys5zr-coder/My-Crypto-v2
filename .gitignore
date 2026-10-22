@@ -1,6 +1,10 @@
 report.json
 .DS_Store
 data.json
-sample_csv/
 PWA_DOCUMENTATION.md
-icon-options/
+sample_csv/
+kraken_data/
+my-crypto-backup-*.json
+realized_sales_*.csv
+portfolio_*.csv
+pit38_*.csv

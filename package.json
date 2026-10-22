@@ -1,0 +1,8 @@
+{
+  "name": "my-crypto",
+  "private": true,
+  "description": "Private-by-design crypto portfolio tracker (static PWA).",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}

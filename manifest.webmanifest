@@ -1,20 +1,115 @@
 {
+  "id": "./",
   "name": "My Crypto",
   "short_name": "My Crypto",
-  "description": "Effective cost, value and P/L for your crypto portfolio (strict-FIFO).",
+  "description": "Private crypto portfolio tracker: strict-FIFO cost basis, value, P/L and taxes, computed on your device.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0B0D12",
   "theme_color": "#0B0D12",
+  "categories": [
+    "finance"
+  ],
   "icons": [
-    {"src":"icons/icon-96.png","sizes":"96x96","type":"image/png"},
-    {"src":"icons/icon-144.png","sizes":"144x144","type":"image/png"},
-    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"icons/icon-256.png","sizes":"256x256","type":"image/png"},
-    {"src":"icons/icon-384.png","sizes":"384x384","type":"image/png"},
-    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Portfolio",
+      "short_name": "Portfolio",
+      "url": "./index.html#portfolio",
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Import CSVs",
+      "short_name": "Import",
+      "url": "./index.html#import",
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/overview.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Overview: value, P/L and portfolio history"
+    },
+    {
+      "src": "screenshots/portfolio.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Portfolio: holdings with live prices"
+    },
+    {
+      "src": "screenshots/coin.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Coin detail: cost, break-even and history"
+    },
+    {
+      "src": "screenshots/settings.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Settings: import, backup and display options"
+    },
+    {
+      "src": "screenshots/wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Overview on a desktop"
+    }
   ]
 }
