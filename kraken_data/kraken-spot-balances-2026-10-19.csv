@@ -1,0 +1,27 @@
+"asset","aclass","subclass","wallet","quantity","price (USD)","value (USD)"
+"ADA","currency","crypto","earn",203.53447394,0.2180,44.3618
+"ADA","currency","crypto","spot",0.00000458,0.2180,0.0000
+"AKT","currency","crypto","spot",32.0000000000,0.6955,22.2544
+"ALGO","currency","crypto","spot",401.24440565,0.1099,44.0936
+"ARB","currency","crypto","spot",139.98458,0.1971,27.5882
+"ATOM","currency","crypto","earn",17.35467702,1.7462,30.3049
+"ATOM","currency","crypto","spot",0.00000385,1.7462,0.0000
+"BTC","currency","crypto","spot",0.0066443637,"81,845.94",543.8142
+"DOT","currency","crypto","earn",103.3010706283,1.1521,119.0090
+"DOT","currency","crypto","spot",0.0000028117,1.1521,0.0000
+"EIGEN","currency","crypto","spot",6.175742,0.2373,1.4652
+"ETH","currency","crypto","earn",0.5495829262,"2,405.01","1,321.7524"
+"ETH","currency","crypto","spot",0.0531883258,"2,405.01",127.9185
+"EUR","currency","fiat","spot",0.0005,1.1226,0.0006
+"FET","currency","crypto","spot",35.0000000000,0.1918,6.7113
+"LINK","currency","crypto","spot",20.0000000000,12.046,240.9200
+"LTC","currency","crypto","spot",11.0000000000,59.6679,656.3469
+"MINA","currency","crypto","earn",640.0766817796,0.0709,45.3539
+"MINA","currency","crypto","spot",0.0000200483,0.0709,0.0000
+"PEPE","currency","crypto","spot","100,000,000.31",0.0000,415.1000
+"POL","currency","crypto","earn","1,510.3888505408",0.0926,139.9224
+"POL","currency","crypto","spot",0.0000322160,0.0926,0.0000
+"RENDER","currency","crypto","spot",35.000004,1.8119,63.4176
+"SUPER","currency","crypto","spot","1,000.0000000000",0.1866,186.5880
+"XRP","currency","crypto","spot",20.00000000,1.3028,26.0560
+"Total","","","","","","4,062.9787"
