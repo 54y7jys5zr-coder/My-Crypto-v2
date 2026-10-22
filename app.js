@@ -1598,14 +1598,21 @@ async function fetchFeed(f){
     if(items.length) writeNewsCache(f, items);
   }catch(e){ /* fall through — loadNews re-reads whatever the cache holds */ }
 }
+/* Crypto Vision: JSON REST, no key, CORS yes. Returns 3 articles per page — fetch several pages
+   so the merged feed has enough items to dedupe against the 4 RSS feeds. */
 async function fetchCryptoVision(){
   try{
-    const r=await fetch(CRYPTOVISION_URL,{cache:"no-store"});
-    if(!r.ok) return;
-    const d=await r.json();
-    if(!d || !Array.isArray(d.articles)) return;
     const f={name:"Crypto Vision",url:CRYPTOVISION_URL};
-    const items=d.articles.map(it=>normalizeCryptoVision(f,it))
+    const pages=await Promise.all([1,2,3,4,5,6].map(p=>
+      fetch(CRYPTOVISION_URL+"?page="+p,{cache:"no-store"})
+        .then(r=>r.ok?r.json():null)));
+    const all=[];
+    for(const d of pages){
+      if(!d || !Array.isArray(d.articles)) continue;
+      for(const it of d.articles) all.push(it);
+    }
+    const items=all
+      .map(it=>normalizeCryptoVision(f,it))
       .filter(it=>it.title && /^https?:/i.test(it.url));
     if(items.length) writeNewsCache(f, items);
   }catch(e){ /* fall through — loadNews re-reads whatever the cache holds */ }
