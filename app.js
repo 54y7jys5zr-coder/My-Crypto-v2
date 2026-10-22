@@ -4,7 +4,7 @@
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const REDUCE_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const VIEWS = ["overview","portfolio","settings"];
+const VIEWS = ["overview","portfolio","news","settings"];
 const EMPTY_DATA = {assets:[],events:[],generated:"",warnings:[],
   meta:{total_deposited:0,total_withdrawn:0,net_deposited:0,eur_remaining:0,total_realized:0}};
 /* Validate/normalize anything that becomes state.data (imports, backups, stored data). Returns null
@@ -55,6 +55,7 @@ const state = {
   scrubbing: false,    // true while user is scrubbing the overview chart
   offline: false,
   privacy: false,      // hide amounts (persisted)
+  newsBusy: false,     // news fetch pass is in flight
   fxTs: 0,             // when FX rates were last fetched
 };
 state.data = EMPTY_DATA;   // handlers may fire before init() finishes loading data
@@ -1504,8 +1505,10 @@ function switchView(name, opts){
     $$(".bottom-nav button").forEach(b=>{ const on=b.dataset.nav===name; b.classList.toggle("active",on);
       if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
     document.body.classList.toggle("tab-overview", name==="overview");
+    document.body.classList.toggle("tab-news", name==="news");
     try{ history.replaceState(null,"", name==="overview" ? location.pathname+location.search : "#"+name); }catch(e){}
-    if(name==="overview" && !state.chartLoaded && state.data) loadChart(); };
+    if(name==="overview" && !state.chartLoaded && state.data) loadChart();
+    if(name==="news") loadNews(); };
   if(opts&&opts.instant){ doIt(); return; }
   if(document.startViewTransition && !REDUCE_MOTION){ document.startViewTransition(doIt); } else { doIt(); }
 }
@@ -1526,6 +1529,111 @@ function exportCSV(){
     r.ret!=null?r.ret.toFixed(1):""].map(cell).join(",")); }
   download(new Blob([lines.join("\n")],{type:"text/csv"}),
     `portfolio_${state.view===3?"invested":"all"}_${new Date().toISOString().slice(0,10)}.csv`);
+}
+
+/* ---------- news (Crypto Vision, cache-first) ----------
+   Free crypto news aggregator (no key, CORS yes). Returns articles[]; mapped to the same card shape.
+   Cache-first per source in localStorage (15 min TTL): cached items paint instantly, network refetches
+   in background when stale. Fire-and-forget — never gates price refresh. URL-deduped against RSS feeds
+   if any are added later. */
+const CRYPTOVISION_URL = "https://cryptocurrency.cv/api/news";
+const NEWS_TTL = 15*60*1000;
+const NEWS_MAX = 20;
+const stripHTML = s => String(s==null?"":s).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+const newsDate = s => {
+  const t = String(s==null?"":s);
+  if(t.endsWith("Z")) return Date.parse(t);
+  return Date.parse(t.replace(" ","T")+"Z");
+};
+function readNewsCache(f){
+  try{ const c=JSON.parse(localStorage.getItem("news_"+f.url)||"null");
+    return (c && Array.isArray(c.items)) ? c : null; }catch(e){ return null; }
+}
+function writeNewsCache(f, items){
+  try{ localStorage.setItem("news_"+f.url, JSON.stringify({t:Date.now(), items})); }catch(e){}
+}
+function normalizeCryptoVision(it){
+  return {
+    title: stripHTML(it.title),
+    source: stripHTML(it.source||"Crypto Vision"),
+    url: String(it.link==null?"":it.link),
+    date: newsDate(it.pubDate),
+    img: /^https?:/i.test(it.image||"") ? it.image : "",
+    summary: stripHTML(it.description).slice(0,180),
+    tags: it.category ? [stripHTML(it.category)] : [],
+  };
+}
+async function fetchCryptoVision(){
+  try{
+    const r=await fetch(CRYPTOVISION_URL,{cache:"no-store"});
+    if(!r.ok) return;
+    const d=await r.json();
+    if(!d || !Array.isArray(d.articles)) return;
+    const f={name:"Crypto Vision",url:CRYPTOVISION_URL};
+    const items=d.articles.map(it=>normalizeCryptoVision(it))
+      .filter(it=>it.title && /^https?:/i.test(it.url));
+    if(items.length) writeNewsCache(f, items);
+  }catch(e){ /* fall through — loadNews re-reads whatever the cache holds */ }
+}
+function mergeNews(caches){
+  const all=[];
+  const seen=new Set();
+  for(const c of caches){
+    if(c && Array.isArray(c.items)){
+      for(const it of c.items){
+        if(it && it.title && !seen.has(it.url)){
+          seen.add(it.url);
+          all.push(it);
+        }
+      }
+    }
+  }
+  all.sort((a,b)=>b.date-a.date);
+  return all.slice(0,NEWS_MAX);
+}
+function loadNews(force){
+  const cv={name:"Crypto Vision",url:CRYPTOVISION_URL};
+  const cached=[readNewsCache(cv)];
+  const items=mergeNews(cached);
+  const stale=!cached[0] || Date.now()-(cached[0].t||0) > NEWS_TTL;
+  renderNews(items, items.length ? (stale ? "Updating…" : "") : "Loading…");
+  if(state.newsBusy || (!stale && !force)) return;
+  if(!navigator.onLine){
+    if(!items.length) renderNews([], "You're offline — pull to refresh when you're back.");
+    return;
+  }
+  state.newsBusy=true;
+  fetchCryptoVision().then(()=>{
+    state.newsBusy=false;
+    const fresh=[readNewsCache(cv)];
+    renderNews(mergeNews(fresh), fresh.length ? "" : "News unavailable — pull to refresh.");
+  });
+}
+function renderNews(items, note){
+  const box=$("#newsList"); if(!box) return;
+  const st=$("#newsStatus"); if(st) st.textContent=note||"";
+  if(!items || !items.length){
+    box.innerHTML='<div class="news-empty empty muted">News unavailable — pull to refresh.</div>';
+    return;
+  }
+  box.innerHTML=items.map(it=>{
+    const img = it.img && /^https?:/i.test(it.img) ? it.img : "";
+    const thumb = img
+      ? `<img class="news-img" src="${esc(img)}" alt="" loading="lazy" decoding="async"/>`
+      : `<span class="news-ph" aria-hidden="true">${esc(it.source.slice(0,2))}</span>`;
+    const sum = it.summary || it.title;
+    const sumHtml = sum!==it.title ? `<span class="news-sum">${esc(sum)}</span>` : "";
+    const tags = it.tags.length
+      ? `<span class="news-tags">${it.tags.map(t=>`<i class="news-tag">${esc(t)}</i>`).join("")}</span>` : "";
+    const url = /^https?:/i.test(it.url) ? it.url : "#";
+    return `<a class="news-card" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+      ${thumb}
+      <span class="news-body">
+        <span class="news-meta"><span class="news-src">${esc(it.source)}</span><i aria-hidden="true">·</i><span class="news-time">${esc(relTime(it.date))}</span></span>
+        <span class="news-title">${esc(it.title)}</span>
+        ${sumHtml}${tags}
+      </span></a>`;
+  }).join("");
 }
 function download(blob, name){
   const url=URL.createObjectURL(blob); const a=document.createElement("a");

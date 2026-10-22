@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://coin-images.coingecko.com https://assets.coingecko.com; connect-src 'self' https://api.coingecko.com https://api.frankfurter.dev https://api.nbp.pl; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://coin-images.coingecko.com https://assets.coingecko.com https://cryptocurrency.cv; connect-src 'self' https://api.coingecko.com https://api.frankfurter.dev https://api.nbp.pl https://cryptocurrency.cv; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0B0D12" media="(prefers-color-scheme: dark)"/>
 <meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)"/>
@@ -312,6 +312,16 @@
     </details>
     </div>
   </section>
+
+  <!-- NEWS VIEW -->
+  <section id="view-news" class="view" aria-label="News">
+    <div class="news-hero">
+      <h2 class="news-h1">News</h2>
+      <p class="muted small">Crypto headlines from Cointelegraph, CoinDesk, Decrypt, The Block and Crypto Vision. Tap a story to read the original article.</p>
+    </div>
+    <div id="newsStatus" class="news-status muted" role="status" aria-live="polite"></div>
+    <div id="newsList" class="news-list"></div>
+  </section>
 </main>
 
 <nav class="bottom-nav" id="nav" aria-label="Main">
@@ -321,6 +331,9 @@
   <button data-nav="portfolio">
     <svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>
     <span>Portfolio</span></button>
+  <button data-nav="news">
+    <svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M4.5 3h15A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-15A1.5 1.5 0 0 1 4.5 3Zm.9 2.2v1.5h13.2V5.2Zm0 3.8v1.3h7.8V9Zm0 3.5v1.3h7.8v-1.3Zm9.2-1.2h4v6.3h-4Z"/></svg>
+    <span>News</span></button>
   <button data-nav="settings">
     <svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5Zm8.4 3.5c0-.5 0-1-.1-1.5l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2.6-1.5L14.9 2h-4l-.4 2.5A7 7 0 0 0 7.9 6l-2.4-1-2 3.4 2 1.6c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7 7 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6c.1-.5.1-1 .1-1.5Z"/></svg>
     <span>Settings</span></button>
