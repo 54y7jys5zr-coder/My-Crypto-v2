@@ -1538,7 +1538,14 @@ function exportCSV(){
    if any are added later. */
 const CRYPTOVISION_URL = "https://cryptocurrency.cv/api/news";
 const NEWS_TTL = 15*60*1000;
+const NEWS_PER_FEED = 10;
 const NEWS_MAX = 20;
+const FEEDS = [
+  { name:"Cointelegraph", url:"https://cointelegraph.com/rss" },
+  { name:"CoinDesk",       url:"https://www.coindesk.com/arc/outboundfeeds/rss/" },
+  { name:"Decrypt",        url:"https://decrypt.co/feed" },
+  { name:"The Block",      url:"https://www.theblock.co/rss.xml" },
+];
 const stripHTML = s => String(s==null?"":s).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
 const newsDate = s => {
   const t = String(s==null?"":s);
@@ -1552,16 +1559,44 @@ function readNewsCache(f){
 function writeNewsCache(f, items){
   try{ localStorage.setItem("news_"+f.url, JSON.stringify({t:Date.now(), items})); }catch(e){}
 }
-function normalizeCryptoVision(it){
+/* one raw rss2json item -> our card shape (everything untrusted; escaped at render) */
+function normalizeNews(f, it){
+  const enc = Array.isArray(it.enclosure) ? it.enclosure[0] : it.enclosure;
+  const encLink = enc && typeof enc==="object" ? enc.link : "";
+  const rawImg = String(it.thumbnail || encLink || "");
   return {
     title: stripHTML(it.title),
-    source: stripHTML(it.source||"Crypto Vision"),
+    source: f.name,
+    url: String(it.link==null?"":it.link),
+    date: newsDate(it.pubDate),
+    img: /^https?:/i.test(rawImg) ? rawImg : "",
+    summary: stripHTML(it.description).slice(0,180),
+    tags: (Array.isArray(it.categories) ? it.categories : [])
+      .map(c=>stripHTML(c)).filter(Boolean).slice(0,2),
+  };
+}
+function normalizeCryptoVision(f, it){
+  return {
+    title: stripHTML(it.title),
+    source: stripHTML(it.source||f.name),
     url: String(it.link==null?"":it.link),
     date: newsDate(it.pubDate),
     img: /^https?:/i.test(it.image||"") ? it.image : "",
     summary: stripHTML(it.description).slice(0,180),
     tags: it.category ? [stripHTML(it.category)] : [],
   };
+}
+async function fetchFeed(f){
+  try{
+    const r=await fetch("https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(f.url),{cache:"no-store"});
+    if(!r.ok) return;
+    const d=await r.json();
+    if(!d || d.status!=="ok" || !Array.isArray(d.items)) return;
+    const items=d.items.slice(0,NEWS_PER_FEED)
+      .map(it=>normalizeNews(f,it))
+      .filter(it=>it.title && /^https?:/i.test(it.url));
+    if(items.length) writeNewsCache(f, items);
+  }catch(e){ /* fall through — loadNews re-reads whatever the cache holds */ }
 }
 async function fetchCryptoVision(){
   try{
@@ -1570,7 +1605,7 @@ async function fetchCryptoVision(){
     const d=await r.json();
     if(!d || !Array.isArray(d.articles)) return;
     const f={name:"Crypto Vision",url:CRYPTOVISION_URL};
-    const items=d.articles.map(it=>normalizeCryptoVision(it))
+    const items=d.articles.map(it=>normalizeCryptoVision(f,it))
       .filter(it=>it.title && /^https?:/i.test(it.url));
     if(items.length) writeNewsCache(f, items);
   }catch(e){ /* fall through — loadNews re-reads whatever the cache holds */ }
@@ -1593,9 +1628,9 @@ function mergeNews(caches){
 }
 function loadNews(force){
   const cv={name:"Crypto Vision",url:CRYPTOVISION_URL};
-  const cached=[readNewsCache(cv)];
+  const cached=[...FEEDS.map(f=>readNewsCache(f)),readNewsCache(cv)];
   const items=mergeNews(cached);
-  const stale=!cached[0] || Date.now()-(cached[0].t||0) > NEWS_TTL;
+  const stale=[...FEEDS,cv].some((f,i)=>!cached[i] || Date.now()-(cached[i].t||0) > NEWS_TTL);
   renderNews(items, items.length ? (stale ? "Updating…" : "") : "Loading…");
   if(state.newsBusy || (!stale && !force)) return;
   if(!navigator.onLine){
@@ -1603,9 +1638,9 @@ function loadNews(force){
     return;
   }
   state.newsBusy=true;
-  fetchCryptoVision().then(()=>{
+  Promise.all([...FEEDS.map(fetchFeed),fetchCryptoVision()]).then(()=>{
     state.newsBusy=false;
-    const fresh=[readNewsCache(cv)];
+    const fresh=[...FEEDS.map(f=>readNewsCache(f)),readNewsCache(cv)];
     renderNews(mergeNews(fresh), fresh.length ? "" : "News unavailable — pull to refresh.");
   });
 }
